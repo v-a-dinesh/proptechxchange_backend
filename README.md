@@ -1,1 +1,2 @@
 # proptechxchange_backend
+PropTechXchange is a real-time real estate bidding platform that allows users to buy and sell properties through a transparent and competitive auction system. The platform ensures secure transactions, live bid updates, and user-friendly features to enhance real estate dealings
