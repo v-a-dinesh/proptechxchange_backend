@@ -8,7 +8,7 @@ const generateOTP = () => {
 };
 
 // Function to send OTP via email
-const sendOTP = async (email, otp) => {
+const sendOTP = async (email, otp, displayName) => {
     const transporter = nodemailer.createTransport({
         host: process.env.EMAIL_HOST,
         port: process.env.EMAIL_PORT,
@@ -20,30 +20,106 @@ const sendOTP = async (email, otp) => {
     });
 
     await transporter.sendMail({
-    from: process.env.EMAIL_FROM,
-    to: email,
-    subject: "Your OTP for PropTechXchange Verification",
-    text: `Welcome to PropTechXchange, a real-time auction platform!
-
-Your OTP is: ${otp}. It will expire in 10 minutes.
-
-Thank you for choosing PropTechXchange. We're excited to have you on board! To get started, please enter this OTP in the registration form.
-
-If you encounter any issues or have questions, feel free to reach out to our support team at:
-- General Inquiries: proptechxchange@gmail.com
-- Manager: managerproptechxchange@gmail.com
-
-We look forward to helping you find your perfect property!
-
-Best regards,
-The PropTechXchange Team`,
-});
+      from: process.env.EMAIL_FROM,
+      to: email,
+      subject: "Verify Your PropTechXchange Account - One-Time Password (OTP)",
+      html: `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background-color: #4a90e2;
+            color: white;
+            text-align: center;
+            padding: 20px;
+            border-radius: 5px 5px 0 0;
+        }
+        .content {
+            background-color: #f4f4f4;
+            padding: 20px;
+            border-radius: 0 0 5px 5px;
+        }
+        .otp {
+            background-color: #ffffff;
+            border: 2px dashed #4a90e2;
+            text-align: center;
+            padding: 15px;
+            font-size: 24px;
+            font-weight: bold;
+            color: #4a90e2;
+            margin: 20px 0;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 12px;
+            color: #777;
+        }
+        .contact-info {
+            background-color: #ffffff;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>PropTechXchange</h1>
+        <p>Secure Account Verification</p>
+    </div>
+    
+    <div class="content">
+        <h2>Hello ${displayName},</h2>
+        
+        <p>You are just one step away from accessing your PropTechXchange account. To complete your registration, please use the One-Time Password (OTP) below:</p>
+        
+        <div class="otp">
+            ${otp}
+        </div>
+        
+        <p><strong>Important Details:</strong></p>
+        <ul>
+            <li>This OTP is valid for 10 minutes</li>
+            <li>Do not share this OTP with anyone</li>
+            <li>This is an automated message, please do not reply</li>
+        </ul>
+        
+        <div class="contact-info">
+            <h3>Need Help?</h3>
+            <p>Contact our support team:</p>
+            <p>
+                General Inquiries: <a href="mailto:proptechxchange@gmail.com">proptechxchange@gmail.com</a><br>
+                Manager:<a href="mailto:managerproptechxchange@gmail.com">managerproptechxchange@gmail.com</a><br>
+                Customer Support: <a href="tel:+918985921962">+91 8985921962</a>
+            </p>
+        </div>
+    </div>
+    
+    <div class="footer">
+        <p>&copy; 2025 PropTechXchange. All rights reserved.</p>
+        <p>Transforming Real Estate Transactions</p>
+    </div>
+</body>
+</html>
+    `,
+    });
 };
 
 // Controller for sending OTP
 export const sendVerificationOTP = async (req, res) => {
     try {
-        const { email } = req.body;
+        const { email, displayName } = req.body;
         const otp = generateOTP();
         const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
@@ -54,7 +130,7 @@ export const sendVerificationOTP = async (req, res) => {
             { upsert: true, new: true }
         );
 
-        await sendOTP(email, otp);
+        await sendOTP(email, otp, displayName);
 
         res.status(200).json({ message: "OTP sent successfully" });
     } catch (error) {
@@ -62,6 +138,7 @@ export const sendVerificationOTP = async (req, res) => {
         res.status(500).json({ message: "Error sending OTP" });
     }
 };
+
 
 // Controller for verifying OTP
 export const verifyOTP = async (req, res) => {
