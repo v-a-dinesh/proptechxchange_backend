@@ -1,7 +1,9 @@
-import express from "express";
-import cors from "cors";
-import dotenv from "dotenv";
-import connectDB from "./config/db.js"; // Import MongoDB connection
+import express from 'express';
+import cors from 'cors';
+import dotenv from 'dotenv';
+import connectDB from './config/db.js';
+import mainRoutes from './routes/index.js';
+import errorHandler from './middlewares/errorHandler.js';
 
 // Load environment variables
 dotenv.config();
@@ -15,6 +17,12 @@ app.use(express.json());
 
 // Connect to MongoDB
 connectDB();
+
+// Use main routes
+app.use('/api', mainRoutes);
+
+// Error handling middleware
+app.use(errorHandler);
 
 // Test Route
 app.get("/", (req, res) => {
