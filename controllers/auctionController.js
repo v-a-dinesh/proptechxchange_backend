@@ -1,44 +1,112 @@
 import Auction from "../models/Auction.js";
 import Property from "../models/Property.js";
 
-/**
- * @route   POST /api/auctions
- * @desc    Seller starts an auction
- * @access  Private (Seller only)
- */
-export const startAuction = async (req, res) => {
-    try {
-        const { sellerId, propertyId, basePrice, startTime, endTime } = req.body;
+// /**
+//  * @route   POST /api/auctions
+//  * @desc    Seller starts an auction
+//  * @access  Private (Seller only)
+//  */
+// export const startAuction = async (req, res) => {
+//     try {
+//         const { sellerId, propertyId, basePrice, startTime, endTime } = req.body;
 
-        if (!sellerId || !propertyId || !basePrice || !startTime || !endTime) {
-            return res.status(400).json({ success: false, message: "All fields are required." });
-        }
+//         if (!sellerId || !propertyId || !basePrice || !startTime || !endTime) {
+//             return res.status(400).json({ success: false, message: "All fields are required." });
+//         }
 
-        // Check if the property exists
-        const property = await Property.findById(propertyId);
-        if (!property) return res.status(404).json({ success: false, message: "Property not found." });
+//         // Check if the property exists
+//         const property = await Property.findById(propertyId);
+//         if (!property) return res.status(404).json({ success: false, message: "Property not found." });
 
-        const newAuction = new Auction({
-            sellerId,
-            propertyId,
-            basePrice,
-            startTime,
-            endTime
-        });
+//         const newAuction = new Auction({
+//             sellerId,
+//             propertyId,
+//             basePrice,
+//             startTime,
+//             endTime
+//         });
 
-        await newAuction.save();
-        res.status(201).json({ success: true, message: "Auction started successfully.", auction: newAuction });
+//         await newAuction.save();
+//         res.status(201).json({ success: true, message: "Auction started successfully.", auction: newAuction });
 
-    } catch (error) {
-        res.status(500).json({ success: false, message: "Error starting auction.", error: error.message });
-    }
-};
+//     } catch (error) {
+//         res.status(500).json({ success: false, message: "Error starting auction.", error: error.message });
+//     }
+// };
 
 /**
  * @route   GET /api/auctions/seller/:sellerId
  * @desc    Get all auctions of a specific seller
  * @access  Private (Seller only)
  */
+
+// controllers/auctionController.js
+
+
+
+// controllers/auctionController.js
+
+
+/**
+ * @route   POST /api/auctions
+ * @desc    Seller starts an auction
+ * @access  Private (Seller only)
+ */
+export const startAuction = async (req, res) => {
+  try {
+    const { sellerId, propertyId, basePrice, startTime, endTime } = req.body;
+
+    if (!sellerId || !propertyId || !basePrice || !startTime || !endTime) {
+      return res.status(400).json({ success: false, message: "All fields are required." });
+    }
+
+    // Check if the property exists and fetch additional details
+    const property = await Property.findById(propertyId).select('title propertyType size address images');
+    if (!property) return res.status(404).json({ success: false, message: "Property not found." });
+
+    const newAuction = new Auction({
+      sellerId,
+      propertyId,
+      basePrice,
+      startTime,
+      endTime,
+      propertyDetails: {
+        title: property.title,
+        propertyType: property.propertyType,
+        size: property.size,
+        address: property.address,
+        images: property.images.map(img => ({ url: img.url, description: img.description }))
+      }
+    });
+
+    await newAuction.save();
+
+    // Update property status to 'in_auction'
+    await Property.findByIdAndUpdate(propertyId, { status: 'in_auction' });
+
+    // Prepare the response
+    const response = {
+      success: true,
+      message: "Auction started successfully.",
+      auction: newAuction.toObject({ versionKey: false })
+    };
+
+    // Remove unnecessary fields from the response
+    delete response.auction.currentHighestBid.bidder;
+    delete response.auction.currentHighestBid.timestamp;
+    delete response.auction.transaction.paymentId;
+    delete response.auction.transaction.paymentMethod;
+    delete response.auction.transaction.amount;
+    delete response.auction.transaction.timestamp;
+    delete response.auction.transaction.invoice;
+    delete response.auction.__v;
+
+    res.status(201).json(response);
+
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Error starting auction.", error: error.message });
+  }
+};
 export const getSellerAuctions = async (req, res) => {
     try {
         const { sellerId } = req.params;

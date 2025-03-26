@@ -1,3 +1,5 @@
+// models/Auction.js
+
 import mongoose from "mongoose";
 
 const Schema = mongoose.Schema;
@@ -23,8 +25,6 @@ const AuctionSchema = new Schema({
   basePrice: { type: Number, required: true },
   currentHighestBid: {
     amount: { type: Number, default: 0 },
-    bidder: { type: String, ref: "User" },
-    timestamp: { type: Date },
   },
   bids: [
     {
@@ -40,11 +40,27 @@ const AuctionSchema = new Schema({
       enum: ["pending", "completed", "failed", "refunded"],
       default: "pending",
     },
-    paymentId: { type: String },
-    paymentMethod: { type: String },
-    amount: { type: Number },
-    timestamp: { type: Date },
-    invoice: { type: String }, // URL to invoice
+  },
+  propertyDetails: {
+    title: { type: String },
+    propertyType: { type: String },
+    size: {
+      value: { type: Number },
+      unit: { type: String },
+    },
+    address: {
+      address: { type: String },
+      city: { type: String },
+      state: { type: String },
+      country: { type: String },
+      zipCode: { type: String },
+    },
+    images: [
+      {
+        url: { type: String },
+        description: { type: String },
+      },
+    ],
   },
 }, { timestamps: true });
 
