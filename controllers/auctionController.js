@@ -70,6 +70,7 @@ export const startAuction = async (req, res) => {
       basePrice,
       startTime,
       endTime,
+      status: "active",
       propertyDetails: {
         title: property.title,
         propertyType: property.propertyType,
