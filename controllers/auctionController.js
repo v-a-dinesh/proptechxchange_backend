@@ -70,7 +70,7 @@ export const startAuction = async (req, res) => {
       basePrice,
       startTime,
       endTime,
-      status: "active",
+      status: "pending_approval", // Set the initial status to "pending_approval"
       propertyDetails: {
         title: property.title,
         propertyType: property.propertyType,
@@ -85,29 +85,17 @@ export const startAuction = async (req, res) => {
     // Update property status to 'in_auction'
     await Property.findByIdAndUpdate(propertyId, { status: 'in_auction' });
 
-    // Prepare the response
-    const response = {
+    res.status(201).json({
       success: true,
-      message: "Auction started successfully.",
-      auction: newAuction.toObject({ versionKey: false })
-    };
-
-    // Remove unnecessary fields from the response
-    delete response.auction.currentHighestBid.bidder;
-    delete response.auction.currentHighestBid.timestamp;
-    delete response.auction.transaction.paymentId;
-    delete response.auction.transaction.paymentMethod;
-    delete response.auction.transaction.amount;
-    delete response.auction.transaction.timestamp;
-    delete response.auction.transaction.invoice;
-    delete response.auction.__v;
-
-    res.status(201).json(response);
+      message: "Auction started successfully. Awaiting admin approval.",
+      auction: newAuction
+    });
 
   } catch (error) {
     res.status(500).json({ success: false, message: "Error starting auction.", error: error.message });
   }
 };
+
 export const getSellerAuctions = async (req, res) => {
     try {
         const { sellerId } = req.params;

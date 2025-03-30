@@ -19,7 +19,7 @@ const AuctionSchema = new Schema({
   endTime: { type: Date, required: true },
   status: {
     type: String,
-    enum: ["upcoming", "active", "extended", "completed", "cancelled"],
+    enum: ["upcoming", "pending_approval", "active", "extended", "completed", "cancelled"],
     default: "upcoming",
   },
   basePrice: { type: Number, required: true },
